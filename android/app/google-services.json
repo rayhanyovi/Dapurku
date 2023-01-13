@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "716470433414",
+    "project_id": "dapurkuu-yovi",
+    "storage_bucket": "dapurkuu-yovi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:716470433414:android:70606d16550b5680ef8307",
+        "android_client_info": {
+          "package_name": "com.example.dapurkuu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "716470433414-bdb7ud0dj2r8gni4mv370e4c8t0jk3mf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO1gKlhryLhi6S4W62Sgk7-v1p3axKMNI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "716470433414-bdb7ud0dj2r8gni4mv370e4c8t0jk3mf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
