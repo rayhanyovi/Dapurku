@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:dapurkuu/warna.dart';
+import 'package:dapurkuu/widget.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +14,7 @@ Future main() async {
   runApp(MyApp());
 }
 
+//========================================================================================================================================//
 const Color Red = Color(0xFFDA4040);
 const Color Blue = Color(0xFF5F52EE);
 const Color Black = Color(0xFF3A3A3A);
@@ -22,6 +25,11 @@ final controllerName = TextEditingController();
 final controllerAge = TextEditingController();
 final controllerBirthday = TextEditingController();
 
+final updateName = TextEditingController();
+final updateAge = TextEditingController();
+final updateBirthday = TextEditingController();
+
+//========================================================================================================================================//
 class User {
   String id;
   final String name;
@@ -49,6 +57,7 @@ class User {
       );
 }
 
+//========================================================================================================================================//
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -65,6 +74,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+//========================================================================================================================================//
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -81,6 +91,13 @@ class _HomeState extends State<Home> {
       user.id = docUser.id;
       final json = user.toJson();
       await docUser.set(json);
+
+      Future updateUser(User user) async {
+        final docUser = FirebaseFirestore.instance.collection('users').doc();
+        user.id = docUser.id;
+        final json = user.toJson();
+        await docUser.update(json);
+      }
     }
 
     Widget buildUser(User user) {
@@ -201,14 +218,14 @@ class _HomeState extends State<Home> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await Popup(context, createUser);
+          await Create(context, createUser);
         },
         child: Icon(Icons.add),
       ),
     );
   }
 
-  Edit(BuildContext context, Future<dynamic> createUser(User user)) async {
+  Edit(BuildContext context, Future<dynamic> updateUser(User user)) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -220,17 +237,17 @@ class _HomeState extends State<Home> {
                   decoration: const InputDecoration(
                     labelText: 'Nama',
                   ),
-                  controller: controllerName,
+                  controller: updateName,
                 ),
                 TextField(
                   decoration: const InputDecoration(
                     labelText: 'Umur',
                   ),
-                  controller: controllerAge,
+                  controller: updateAge,
                   keyboardType: TextInputType.number,
                 ),
                 TextField(
-                  controller: controllerBirthday,
+                  controller: updateBirthday,
                   //editing controller of this TextField
                   decoration: InputDecoration(
                       labelText: "Enter Date" //label text of field
@@ -249,7 +266,7 @@ class _HomeState extends State<Home> {
                       print(
                           pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000 //formatted date output using intl package =>  2021-03-16
                       setState(() {
-                        controllerBirthday.text = pickedDate
+                        updateBirthday.text = pickedDate
                             .toString(); //set output date to TextField value.
                       });
                     } else {}
@@ -260,28 +277,24 @@ class _HomeState extends State<Home> {
             actions: <Widget>[
               MaterialButton(
                   elevation: 5.0,
-                  child: Text("Tambahkan"),
+                  child: Text("Ubah Data"),
                   onPressed: () {
                     final user = User(
-                      name: controllerName.text,
-                      age: int.parse(controllerAge.text),
-                      birthday: DateTime.parse(controllerBirthday.text),
+                      name: updateName.text,
+                      age: int.parse(updateAge.text),
+                      birthday: DateTime.parse(updateBirthday.text),
                     );
                     final docUser = FirebaseFirestore.instance
                         .collection('users')
                         .doc(user.id);
-                    docUser.set({
-                      'name': controllerName,
-                      'age': controllerAge,
-                      'birthday': controllerBirthday,
-                    });
+                    updateUser(user);
                   }),
             ],
           );
         });
   }
 
-  Popup(BuildContext context, Future<dynamic> createUser(User user)) async {
+  Create(BuildContext context, Future<dynamic> createUser(User user)) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -354,6 +367,7 @@ class _HomeState extends State<Home> {
           snapshot.docs.map((doc) => User.fromJson(doc.data())).toList());
 }
 
+//========================================================================================================================================//
 AppBar _AppBar() {
   return AppBar(
     elevation: 0,
@@ -371,6 +385,7 @@ AppBar _AppBar() {
   );
 }
 
+//========================================================================================================================================//
 class UpdateButton extends StatelessWidget {
   const UpdateButton({Key? key}) : super(key: key);
 
@@ -387,6 +402,7 @@ class UpdateButton extends StatelessWidget {
   }
 }
 
+//========================================================================================================================================//
 class SearchBox extends StatelessWidget {
   const SearchBox({
     Key? key,
