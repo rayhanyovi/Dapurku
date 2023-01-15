@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -25,35 +24,35 @@ final controllerName = TextEditingController();
 final controllerAge = TextEditingController();
 final controllerBirthday = TextEditingController();
 
-final updateName = TextEditingController();
-final updateAge = TextEditingController();
-final updateBirthday = TextEditingController();
+TextEditingController updateName = TextEditingController();
+TextEditingController updateAge = TextEditingController();
+TextEditingController updateBirthday = TextEditingController();
 
 //========================================================================================================================================//
-class User {
+class BahanDapur {
   String id;
-  final String name;
-  final int age;
-  final DateTime birthday;
+  final String nama;
+  final int jumlah;
+  final DateTime kadaluarsa;
 
-  User({
+  BahanDapur({
     this.id = '',
-    required this.name,
-    required this.age,
-    required this.birthday,
+    required this.nama,
+    required this.jumlah,
+    required this.kadaluarsa,
   });
   Map<String, dynamic> toJson() => {
         'id': id,
-        'name': name,
-        'age': age,
-        'birthday': birthday,
+        'nama': nama,
+        'jumlah': jumlah,
+        'kadaluarsa': kadaluarsa,
       };
 
-  static User fromJson(Map<String, dynamic> json) => User(
+  static BahanDapur fromJson(Map<String, dynamic> json) => BahanDapur(
         id: json['id'],
-        name: json['name'],
-        age: json['age'],
-        birthday: (json['birthday'] as Timestamp).toDate(),
+        nama: json['nama'],
+        jumlah: json['jumlah'],
+        kadaluarsa: (json['kadaluarsa'] as Timestamp).toDate(),
       );
 }
 
@@ -81,26 +80,27 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final CollectionReference _users =
-      FirebaseFirestore.instance.collection('users');
+  final CollectionReference _bahanDapur =
+      FirebaseFirestore.instance.collection('bahanDapur');
 
   @override
   Widget build(BuildContext context) {
-    Future createUser(User user) async {
-      final docUser = FirebaseFirestore.instance.collection('users').doc();
-      user.id = docUser.id;
-      final json = user.toJson();
+    Future createUser(BahanDapur bahanDapur) async {
+      final docUser = FirebaseFirestore.instance.collection('bahanDapur').doc();
+      bahanDapur.id = docUser.id;
+      final json = bahanDapur.toJson();
       await docUser.set(json);
 
-      Future updateUser(User user) async {
-        final docUser = FirebaseFirestore.instance.collection('users').doc();
-        user.id = docUser.id;
-        final json = user.toJson();
+      Future updateUser(BahanDapur bahanDapur) async {
+        final docUser =
+            FirebaseFirestore.instance.collection('bahanDapur').doc();
+        bahanDapur.id = docUser.id;
+        final json = bahanDapur.toJson();
         await docUser.update(json);
       }
     }
 
-    Widget buildUser(User user) {
+    Widget buildUser(BahanDapur bahanDapur) {
       return Container(
         margin: EdgeInsets.only(
           right: 20,
@@ -120,8 +120,8 @@ class _HomeState extends State<Home> {
             title: Padding(
               padding: const EdgeInsets.only(bottom: 5),
               child: Text(
-                user.name,
-                style: TextStyle(
+                bahanDapur.nama,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -131,29 +131,36 @@ class _HomeState extends State<Home> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Jumlah: ${user.age}',
+                  'Jumlah: ${bahanDapur.jumlah}',
                 ),
                 Text(
-                    'Kadaluarsa: ${DateFormat('dd MMMM yyyy').format(user.birthday)}')
+                    'Kadaluarsa: ${DateFormat('dd MMMM yyyy').format(bahanDapur.kadaluarsa)}')
               ],
             ),
             trailing: Wrap(spacing: 0, children: [
               IconButton(
-                icon: Icon(Icons.edit),
+                icon: const Icon(Icons.edit),
                 iconSize: 24,
                 color: Colors.black,
                 onPressed: () async {
-                  await Edit(context, createUser);
+                  await Edit(context, createUser, bahanDapur.id);
+                  setState(() {
+                    updateName = TextEditingController(text: bahanDapur.nama);
+                    updateAge = TextEditingController(
+                        text: bahanDapur.jumlah.toString());
+                    updateBirthday = TextEditingController(
+                        text: bahanDapur.kadaluarsa.toString());
+                  });
                 },
               ),
               IconButton(
-                icon: Icon(Icons.delete),
+                icon: const Icon(Icons.delete),
                 iconSize: 24,
                 color: Colors.red,
                 onPressed: () {
                   final docUser = FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user.id);
+                      .collection('bahanDapur')
+                      .doc(bahanDapur.id);
                   docUser.delete();
                 },
               ),
@@ -178,7 +185,7 @@ class _HomeState extends State<Home> {
               Container(
                 margin: EdgeInsets.only(left: 20),
                 alignment: Alignment.centerLeft,
-                child: Text(
+                child: const Text(
                   'Bahan Dapurmu',
                   style: TextStyle(
                     fontSize: 28,
@@ -195,13 +202,13 @@ class _HomeState extends State<Home> {
               stream: readUsers(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  final users = snapshot.data!;
+                  final bahanDapur = snapshot.data!;
 
                   return Expanded(
                     child: ListView(
                       scrollDirection: Axis.vertical,
                       shrinkWrap: true,
-                      children: users.map(buildUser).toList(),
+                      children: bahanDapur.map(buildUser).toList(),
                     ),
                   );
                 } else if (snapshot.hasError) {
@@ -209,7 +216,7 @@ class _HomeState extends State<Home> {
                     child: Text("data kosong"),
                   );
                 } else {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
@@ -225,12 +232,13 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Edit(BuildContext context, Future<dynamic> updateUser(User user)) async {
+  Edit(BuildContext context, Future<dynamic> updateUser(BahanDapur bahanDapur),
+      String id) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Tambahkan bahan"),
+            title: Text("Edit bahan"),
             content: Column(
               children: [
                 TextField(
@@ -249,7 +257,7 @@ class _HomeState extends State<Home> {
                 TextField(
                   controller: updateBirthday,
                   //editing controller of this TextField
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                       labelText: "Enter Date" //label text of field
                       ),
                   readOnly: true,
@@ -279,22 +287,25 @@ class _HomeState extends State<Home> {
                   elevation: 5.0,
                   child: Text("Ubah Data"),
                   onPressed: () {
-                    final user = User(
-                      name: updateName.text,
-                      age: int.parse(updateAge.text),
-                      birthday: DateTime.parse(updateBirthday.text),
+                    final bahanDapur = BahanDapur(
+                      id: id,
+                      nama: updateName.text,
+                      jumlah: int.parse(updateAge.text),
+                      kadaluarsa: DateTime.parse(updateBirthday.text),
                     );
                     final docUser = FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(user.id);
-                    updateUser(user);
+                        .collection('bahanDapur')
+                        .doc(id)
+                        .update(bahanDapur.toJson());
+                    // updateUser(user;)
                   }),
             ],
           );
         });
   }
 
-  Create(BuildContext context, Future<dynamic> createUser(User user)) async {
+  Create(BuildContext context,
+      Future<dynamic> createUser(BahanDapur bahanDapur)) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -348,23 +359,23 @@ class _HomeState extends State<Home> {
                   elevation: 5.0,
                   child: Text("Tambahkan"),
                   onPressed: () {
-                    final user = User(
-                      name: controllerName.text,
-                      age: int.parse(controllerAge.text),
-                      birthday: DateTime.parse(controllerBirthday.text),
+                    final bahanDapur = BahanDapur(
+                      nama: controllerName.text,
+                      jumlah: int.parse(controllerAge.text),
+                      kadaluarsa: DateTime.parse(controllerBirthday.text),
                     );
-                    createUser(user);
+                    createUser(bahanDapur);
                   }),
             ],
           );
         });
   }
 
-  Stream<List<User>> readUsers() => FirebaseFirestore.instance
-      .collection('users')
+  Stream<List<BahanDapur>> readUsers() => FirebaseFirestore.instance
+      .collection('bahanDapur')
       .snapshots()
       .map((snapshot) =>
-          snapshot.docs.map((doc) => User.fromJson(doc.data())).toList());
+          snapshot.docs.map((doc) => BahanDapur.fromJson(doc.data())).toList());
 }
 
 //========================================================================================================================================//
