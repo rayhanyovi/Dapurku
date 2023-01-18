@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dapurkuu/petunjuk.dart';
+import 'package:dapurkuu/tentang.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:dapurkuu/warna.dart';
+import 'package:dapurkuu/variable.dart';
 import 'package:dapurkuu/widget.dart';
 
 Future main() async {
@@ -13,22 +16,6 @@ Future main() async {
   runApp(MyApp());
 }
 
-//========================================================================================================================================//
-const Color Red = Color(0xFFDA4040);
-const Color Blue = Color(0xFF5F52EE);
-const Color Black = Color(0xFF3A3A3A);
-const Color Grey = Color(0xFF717171);
-const Color BGColor = Color(0xFFEEEFF5);
-
-final controllerName = TextEditingController();
-final controllerAge = TextEditingController();
-final controllerBirthday = TextEditingController();
-
-TextEditingController updateName = TextEditingController();
-TextEditingController updateAge = TextEditingController();
-TextEditingController updateBirthday = TextEditingController();
-
-//========================================================================================================================================//
 class BahanDapur {
   String id;
   final String nama;
@@ -67,7 +54,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Test",
+      title: "Dapurku",
       home: Home(),
     );
   }
@@ -85,7 +72,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    Future createUser(BahanDapur bahanDapur) async {
+    Future CreateBahan(BahanDapur bahanDapur) async {
       final docUser = FirebaseFirestore.instance.collection('bahanDapur').doc();
       bahanDapur.id = docUser.id;
       final json = bahanDapur.toJson();
@@ -100,88 +87,108 @@ class _HomeState extends State<Home> {
       }
     }
 
-    Widget buildUser(BahanDapur bahanDapur) {
+    Widget buildBahan(BahanDapur bahanDapur) {
       return Container(
         margin: EdgeInsets.only(
           right: 20,
           left: 20,
           bottom: 15,
         ),
-        child: Material(
-          child: ListTile(
-            onTap: () {
-              print("card");
-            },
-            contentPadding:
-                EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 15),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            tileColor: Colors.white,
-            title: Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: Text(
-                bahanDapur.nama,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+        child: ListTile(
+          contentPadding:
+              EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 15),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          tileColor: Colors.white,
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Text(
+              bahanDapur.nama,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Jumlah: ${bahanDapur.jumlah}',
-                ),
-                Text(
-                    'Kadaluarsa: ${DateFormat('dd MMMM yyyy').format(bahanDapur.kadaluarsa)}')
-              ],
-            ),
-            trailing: Wrap(spacing: 0, children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                iconSize: 24,
-                color: Colors.black,
-                onPressed: () async {
-                  await Edit(context, createUser, bahanDapur.id);
-                  setState(() {
-                    updateName = TextEditingController(text: bahanDapur.nama);
-                    updateAge = TextEditingController(
-                        text: bahanDapur.jumlah.toString());
-                    updateBirthday = TextEditingController(
-                        text: bahanDapur.kadaluarsa.toString());
-                  });
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                iconSize: 24,
-                color: Colors.red,
-                onPressed: () {
-                  final docUser = FirebaseFirestore.instance
-                      .collection('bahanDapur')
-                      .doc(bahanDapur.id);
-                  docUser.delete();
-                },
-              ),
-            ]),
           ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Jumlah: ${bahanDapur.jumlah}',
+              ),
+              Text(
+                  'Kadaluarsa: ${DateFormat('dd MMMM yyyy').format(bahanDapur.kadaluarsa)}')
+            ],
+          ),
+          trailing: Wrap(spacing: 0, children: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              iconSize: 24,
+              color: Colors.black,
+              onPressed: () async {
+                await Edit(context, CreateBahan, bahanDapur.id);
+                setState(() {
+                  updateName = TextEditingController(text: bahanDapur.nama);
+                  updateAge =
+                      TextEditingController(text: bahanDapur.jumlah.toString());
+                  updateBirthday = TextEditingController(
+                      text: bahanDapur.kadaluarsa.toString());
+                });
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              iconSize: 24,
+              color: Colors.red,
+              onPressed: () {
+                final docUser = FirebaseFirestore.instance
+                    .collection('bahanDapur')
+                    .doc(bahanDapur.id);
+                docUser.delete();
+              },
+            ),
+          ]),
         ),
       );
     }
 
     return Scaffold(
       backgroundColor: BGColor,
-      appBar: _AppBar(),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: BGColor,
+        actions: [
+          //list if widget in appbar actions
+          PopupMenuButton(
+            icon: Icon(
+              Icons.more_vert,
+              color: Black,
+            ), //don't specify icon if you want 3 dot menu
+            color: Black,
+            itemBuilder: (context) => [
+              PopupMenuItem<int>(
+                value: 0,
+                child: Text(
+                  "Petunjuk Penggunaan",
+                  style: TextStyle(color: BGColor),
+                ),
+              ),
+              PopupMenuItem<int>(
+                value: 1,
+                child: Text(
+                  "Tentang",
+                  style: TextStyle(color: BGColor),
+                ),
+              ),
+            ],
+            onSelected: (item) => SelectedItem(context, item),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          /* JUDUL */
           Column(
             children: [
-              Container(
-                  margin: EdgeInsets.only(left: 20),
-                  alignment: Alignment.centerLeft,
-                  child: SearchBox()),
               Container(
                 margin: EdgeInsets.only(left: 20),
                 alignment: Alignment.centerLeft,
@@ -196,36 +203,39 @@ class _HomeState extends State<Home> {
               )
             ],
           ),
-          /* STREAM BUILDER */
-
+          SizedBox(
+            height: 20,
+          ),
           StreamBuilder(
-              stream: readUsers(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final bahanDapur = snapshot.data!;
+            stream: readBahan(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final bahanDapur = snapshot.data!;
 
-                  return Expanded(
-                    child: ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: bahanDapur.map(buildUser).toList(),
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return Container(
-                    child: Text("data kosong"),
-                  );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              }),
+                return Expanded(
+                  child: ListView(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: bahanDapur.map(buildBahan).toList(),
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Container(
+                  child: Text("data kosong"),
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Black,
         onPressed: () async {
-          await Create(context, createUser);
+          await Create(context, CreateBahan);
         },
         child: Icon(Icons.add),
       ),
@@ -238,8 +248,9 @@ class _HomeState extends State<Home> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Edit bahan"),
+            title: Text("Ubah Informasi Bahan"),
             content: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   decoration: const InputDecoration(
@@ -249,7 +260,7 @@ class _HomeState extends State<Home> {
                 ),
                 TextField(
                   decoration: const InputDecoration(
-                    labelText: 'Umur',
+                    labelText: 'Jumlah',
                   ),
                   controller: updateAge,
                   keyboardType: TextInputType.number,
@@ -258,7 +269,7 @@ class _HomeState extends State<Home> {
                   controller: updateBirthday,
                   //editing controller of this TextField
                   decoration: const InputDecoration(
-                      labelText: "Enter Date" //label text of field
+                      labelText: "Kadaluarsa" //label text of field
                       ),
                   readOnly: true,
                   //set it true, so that user will not able to edit text
@@ -297,6 +308,11 @@ class _HomeState extends State<Home> {
                         .collection('bahanDapur')
                         .doc(id)
                         .update(bahanDapur.toJson());
+
+                    controllerJumlah.clear();
+                    controllerKadaluarsa.clear();
+                    controllerNama.clear();
+                    Navigator.pop(context);
                     // updateUser(user;)
                   }),
             ],
@@ -305,32 +321,33 @@ class _HomeState extends State<Home> {
   }
 
   Create(BuildContext context,
-      Future<dynamic> createUser(BahanDapur bahanDapur)) async {
+      Future<dynamic> CreateBahan(BahanDapur bahanDapur)) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("Tambahkan bahan"),
             content: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   decoration: const InputDecoration(
                     labelText: 'Nama',
                   ),
-                  controller: controllerName,
+                  controller: controllerNama,
                 ),
                 TextField(
                   decoration: const InputDecoration(
-                    labelText: 'Umur',
+                    labelText: 'Jumlah',
                   ),
-                  controller: controllerAge,
+                  controller: controllerJumlah,
                   keyboardType: TextInputType.number,
                 ),
                 TextField(
-                  controller: controllerBirthday,
+                  controller: controllerKadaluarsa,
                   //editing controller of this TextField
                   decoration: InputDecoration(
-                      labelText: "Enter Date" //label text of field
+                      labelText: "Kadaluarsa" //label text of field
                       ),
                   readOnly: true,
                   //set it true, so that user will not able to edit text
@@ -346,7 +363,7 @@ class _HomeState extends State<Home> {
                       print(
                           pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000 //formatted date output using intl package =>  2021-03-16
                       setState(() {
-                        controllerBirthday.text = pickedDate
+                        controllerKadaluarsa.text = pickedDate
                             .toString(); //set output date to TextField value.
                       });
                     } else {}
@@ -360,18 +377,22 @@ class _HomeState extends State<Home> {
                   child: Text("Tambahkan"),
                   onPressed: () {
                     final bahanDapur = BahanDapur(
-                      nama: controllerName.text,
-                      jumlah: int.parse(controllerAge.text),
-                      kadaluarsa: DateTime.parse(controllerBirthday.text),
+                      nama: controllerNama.text,
+                      jumlah: int.parse(controllerJumlah.text),
+                      kadaluarsa: DateTime.parse(controllerKadaluarsa.text),
                     );
-                    createUser(bahanDapur);
+                    CreateBahan(bahanDapur);
+                    controllerJumlah.clear();
+                    controllerKadaluarsa.clear();
+                    controllerNama.clear();
+                    Navigator.pop(context);
                   }),
             ],
           );
         });
   }
 
-  Stream<List<BahanDapur>> readUsers() => FirebaseFirestore.instance
+  Stream<List<BahanDapur>> readBahan() => FirebaseFirestore.instance
       .collection('bahanDapur')
       .snapshots()
       .map((snapshot) =>
@@ -383,17 +404,47 @@ AppBar _AppBar() {
   return AppBar(
     elevation: 0,
     backgroundColor: BGColor,
-    title: Center(
-      child: Text(
-        "Dapurku",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Black,
-        ),
+    actions: [
+      //list if widget in appbar actions
+      PopupMenuButton(
+        icon: Icon(
+          Icons.more_vert,
+          color: Red,
+        ), //don't specify icon if you want 3 dot menu
+        color: Black,
+        itemBuilder: (context) => [
+          PopupMenuItem<int>(
+            value: 0,
+            child: Text(
+              "Petunjuk Pnaan",
+              style: TextStyle(color: BGColor),
+            ),
+          ),
+          PopupMenuItem<int>(
+            value: 1,
+            child: Text(
+              "Tentang",
+              style: TextStyle(color: BGColor),
+            ),
+          ),
+        ],
+        // onSelected: (item) => SelectedItem(context, item),
       ),
-    ),
+    ],
   );
+}
+
+void SelectedItem(BuildContext context, item) {
+  switch (item) {
+    case 0:
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => Petunjuk()));
+      break;
+    case 1:
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => Tentang()));
+      break;
+  }
 }
 
 //========================================================================================================================================//
@@ -414,37 +465,47 @@ class UpdateButton extends StatelessWidget {
 }
 
 //========================================================================================================================================//
-class SearchBox extends StatelessWidget {
-  const SearchBox({
-    Key? key,
-  }) : super(key: key);
+// class SearchBox extends StatefulWidget {
+//   const SearchBox({
+//     Key? key,
+//   }) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10),
-      child: const TextField(
-        decoration: InputDecoration(
-            contentPadding: EdgeInsets.all(0),
-            prefixIcon: Icon(
-              Icons.search,
-              color: Black,
-              size: 20,
-            ),
-            prefixIconConstraints: BoxConstraints(
-              maxHeight: 20,
-              minWidth: 25,
-            ),
-            border: InputBorder.none,
-            hintText: "Cari Bahan...",
-            hintStyle: TextStyle(
-              color: Grey,
-            )),
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-    );
-  }
-}
+//   @override
+//   State<SearchBox> createState() => _SearchBoxState();
+// }
+
+// class _SearchBoxState extends State<SearchBox> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       padding: const EdgeInsets.only(left: 10),
+//       child: TextField(
+//         decoration: InputDecoration(
+//             contentPadding: EdgeInsets.all(0),
+//             prefixIcon: Icon(
+//               Icons.search,
+//               color: Black,
+//               size: 20,
+//             ),
+//             prefixIconConstraints: BoxConstraints(
+//               maxHeight: 20,
+//               minWidth: 25,
+//             ),
+//             border: InputBorder.none,
+//             hintText: "Cari Bahan...",
+//             hintStyle: TextStyle(
+//               color: Grey,
+//             )),
+//         onChanged: (value) {
+//           setState(() {
+//             var carinama = value;
+//           });
+//         },
+//       ),
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         borderRadius: BorderRadius.circular(20),
+//       ),
+//     );
+//   }
+// }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dapurkuu/warna.dart';
+import 'package:dapurkuu/variable.dart';
 
 class SearchBox extends StatelessWidget {
   const SearchBox({
